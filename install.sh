@@ -3,7 +3,7 @@
 echo "🔄 Memeriksa sistem..."
 OS=$(uname -o)
 
-# Cek apakah sistem adalah Termux
+# Cek apakah sistem adalah Termux atau Linux
 if [[ "$OS" == "Android" ]]; then
     echo "📲 Detected Termux!"
     PKG_INSTALL="pkg install -y"
@@ -25,13 +25,6 @@ then
     fi
 fi
 
-# Periksa apakah Git sudah terinstal
-if ! command -v git &> /dev/null
-then
-    echo "⚠️ Git tidak ditemukan. Menginstal Git..."
-    $PKG_INSTALL git
-fi
-
 # Periksa apakah npm sudah terinstal
 if ! command -v npm &> /dev/null
 then
@@ -39,19 +32,44 @@ then
     $PKG_INSTALL npm
 fi
 
-# Clone repository jika belum ada
-if [ ! -d "api-jkt48connect" ]; then
-    echo "📥 Mengunduh repository..."
-    git clone https://github.com/USERNAME/api-jkt48connect.git
+# Buat folder project jika belum ada
+if [ ! -d "jkt48connect-bot" ]; then
+    echo "📁 Membuat folder proyek..."
+    mkdir jkt48connect-bot
 fi
 
-# Masuk ke dalam folder proyek
-cd api-jkt48connect
+# Masuk ke folder project
+cd jkt48connect-bot
 
-# Instal dependensi
-echo "📦 Menginstal dependensi..."
-npm install
+# Inisialisasi proyek jika belum ada package.json
+if [ ! -f "package.json" ]; then
+    echo "📜 Menginisialisasi proyek Node.js..."
+    npm init -y
+fi
 
-# Jalankan aplikasi
+# Instal modul api-jkt48connect
+echo "📦 Menginstal api-jkt48connect..."
+npm install api-jkt48connect
+
+# Buat file index.js jika belum ada
+if [ ! -f "index.js" ]; then
+    echo "📝 Membuat file index.js..."
+    cat <<EOF > index.js
+const jkt48connect = require("api-jkt48connect");
+
+async function checkLive() {
+    try {
+        const live = await jkt48connect.getLive("API_KEY_ANDA");
+        console.log("🎥 Live Member JKT48 Saat Ini:", live);
+    } catch (err) {
+        console.error("❌ Gagal mengambil data live:", err.message);
+    }
+}
+
+// Jalankan pengecekan live
+checkLive();
+EOF
+fi
+
 echo "🚀 Menjalankan aplikasi..."
-node .
+node index.js
